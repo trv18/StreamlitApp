@@ -306,7 +306,7 @@ def config_generator(optimizer, batch_size, lr, Layer_Units, epochs):
 
 configs = {}
 {%for i in range(number_of_models|int)%}
-config[{{i}}] = config_generator(optimizer={{optimizer[i]}},
+config[{{i}}] = config_generator(optimizer="{{optimizer[i]}}",
                                 batch_size={{batch_size[i]}},    
                                 lr={{lr[i]}}, 
                                 Layer_Units= {{Layer_Units[i]}},
