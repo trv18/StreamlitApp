@@ -18,6 +18,24 @@ def show():
     input = {}
 
     with st.sidebar:
+            
+    #------------------------------------------------------------------------
+
+        st.write("## Input data")
+        input["data_format"] = st.selectbox(
+            "Which data do you want to use?",
+            ("Public dataset", "Numpy arrays"),
+        )
+        if input["data_format"] == "Numpy arrays":
+            st.write(
+            """
+            Expected format: `[features, label]`
+            - `features` has array shape (num samples, num features)
+            - `labels` has array shape (num samples, )
+            """
+            )
+        if input["data_format"] == "Public dataset":
+           input["dataset"]=st.selectbox("Select Public Dataset", ["Fuel Efficiency"])
 
     #------------------------------------------------------------------------
 
@@ -32,7 +50,7 @@ def show():
         input["epochs"] = {}
     
         for i in range(int(input["number_of_models"])):
-            st.write(f"## Model Architecture {i+1}")
+            st.write(f"# `Model Architecture {i+1}`")
             input["optimizer"][i] = st.selectbox("Optimizer ", list(OPTIMIZERS.keys()) ,key = 'Model-opt'+str(i))
             input["batch_size"][i] = st.number_input("Batch Size", min_value=1, value=100,  format="%i", key = 'Model-bs'+str(i))
             input["lr"][i] = st.number_input("Learning Rate", min_value=0.0, max_value=1.0, value=0.01, format="%f", key = 'Model-lr'+str(i))
@@ -41,32 +59,15 @@ def show():
             input["Layer_Units"][i] =  collect_numbers(layterunits)
             input["epochs"][i] = st.number_input("Epochs", min_value=0, max_value=None, value=10, format="%i", key = 'Model-ep'+str(i))
         
-        st.write(f"## General Model Hyperparameters")
+        st.write("## `General Model Hyperparameters`")
         input["Batch_Normalisation"] = st.selectbox("Batch Normalisation", ["on", "off"])
         input["dropout"] = st.number_input("Dropout Rate - if none enter 0")
         input["activation_func"] = st.selectbox("Select Activation Function", [None,"relu", "sigmoid", "tanh"])
         input["loss_metric"] = st.selectbox("Loss Metric", ["KLD", "MAE", "MAPE", "MSE", "binary_crossentropy", "categorical_crossentropy"])
         input["tracking_metric"] = st.selectbox("Tracking Metric", ["KLD", "MAE", "MAPE", "MSE", "binary_crossentropy", "categorical_crossentropy"])
 
-        
     #------------------------------------------------------------------------
-
-        st.write("## Input data")
-        input["data_format"] = st.selectbox(
-            "Which data do you want to use?",
-            ("Public dataset", "Numpy arrays"),
-        )
-        if input["data_format"] == "Numpy arrays":
-            st.write(
-                """
-            Expected format: `[features, label]`
-            - `features` has array shape (num samples, num features)
-            - `labels` has array shape (num samples, )
-            """
-            )
-
-    #------------------------------------------------------------------------
-        st.write("## Model Saving and Callbacks")
+        st.write("## `Model Saving and Callbacks`")
         input["save_losses"] = st.selectbox("Save Model Parameters and logs", ["on", "off"])
 
         input["save_model"] = st.selectbox("Save Model if performance threshold achieved", ["on", "off"])
@@ -77,7 +78,7 @@ def show():
         input["include_callbacks"] = st.selectbox("Callbacks", ["on", "off"])
         if input["include_callbacks"] == "on":
 
-            st.write("Learning Rate Reduction")
+            st.write("""`Learning Rate Reduction`""")
             input["reduce_lr_on_plateau"] = st.selectbox("Learning Rate Reduction if performance reaches plateau", ["on", "off"])
             if input["reduce_lr_on_plateau"] == "on":
 
@@ -86,7 +87,7 @@ def show():
                 input["lr_patience"] = st.number_input('lr patience')
                 input["min_lr"] = st.number_input('minimum lr')
 
-            st.write("Early Stopping")
+            st.write("`Early Stopping`")
             input["early_stopping"] = st.selectbox("Early Stopping if performance reaches pleateau", ["on", "off"])
             if input["early_stopping"] == "on":
                 input["min_loss_delta"] = st.number_input('min loss delta')
