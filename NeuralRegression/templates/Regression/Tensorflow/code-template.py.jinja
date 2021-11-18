@@ -1,0 +1,375 @@
+# Before running, install required packages:
+{% if notebook %}
+
+!
+{% else %}
+#
+{% endif %}
+# Install packages if on jupyter notebook
+ pip install numpy torch torchvision pytorch-ignite{% if visualization_tool == "Tensorboard" %} tensorboardX tensorboard{% endif %}{% if visualization_tool == "Weights & Biases" %} wandb{% endif %}{% if visualization_tool == "comet.ml" %} comet_ml{% endif %}{% if visualization_tool == "Aim" %} aim{% endif %}
+{% if visualization_tool == "Weights & Biases" %}
+
+# you need to login to Weights & Biases on the terminal:
+{% if notebook %}
+! wandb login
+{% else %}
+# wandb login
+{% endif %}
+{% endif %}
+
+{% if save_losses == True%}
+from datetime import datetime
+{% endif %}
+
+{% if visualization_tool == "comet.ml" %}
+from comet_ml import Experiment  # has to be 1st import
+{% endif %}
+import numpy as np
+from numpy import savetxt, loadtxt
+import tensorflow as tf
+import pandas as pd
+import sklearn.model_selection as skl_model_selection
+import matplotlib.pyplot as plt
+
+{% if visualization_tool == "Tensorboard" or checkpoint %}
+from datetime import datetime
+{% endif %}
+{% if visualization_tool == "Tensorboard" %}
+from tensorboardX import SummaryWriter
+{% elif visualization_tool == "Aim" %}
+from aim import Session
+{% elif visualization_tool == "Weights & Biases" %}
+import wandb
+{% endif %}
+{% if checkpoint %}
+from pathlib import Path
+{% endif %}
+
+#------------------------------------------------------------------------
+
+{% if data_format == "Numpy arrays" %}
+def fake_data():
+    # 4 feature arrays of shape 1x10 with labels 0, 1, 2, 3
+    return [np.random.rand(4, 1, 10), np.arange(4)]
+
+{% endif %}
+
+
+{{ header("Setup") }}
+
+{% if data_format == "Numpy arrays" %}
+# INSERT YOUR DATA HERE
+# Expected format: [features, fabels]
+# - features has array shape (num samples, num features)
+# - labels has array shape (num samples, )
+train_data = fake_data()  # required
+val_data = fake_data()    # optional
+test_data = None          # optional
+
+{% elif data_format == "Public dataset"%}
+# Dataset {{ dataset }} will be loaded further down.
+{% endif %}
+#------------------------------------------------------------------------
+
+# Set up logging.
+{% if visualization_tool == "Tensorboard" or checkpoint %}
+experiment_id = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+{% endif %}
+
+{% if visualization_tool == "Tensorboard" %}
+writer = SummaryWriter(logdir=f"logs/{experiment_id}")
+
+{% elif visualization_tool == "Aim" %}
+aim_session = Session({% if aim_experiment %}experiment="{{ aim_experiment }}"{% endif %})
+aim_session.set_params({"lr": lr, "batch_size": batch_size, "num_epochs": num_epochs}, name="hparams")
+
+{% elif visualization_tool == "Weights & Biases" %}
+wandb.init(
+{% if wb_project %}
+    project="{{ wb_project }}", 
+{% endif %}
+{% if wb_name %}
+    name="{{ wb_name }}", 
+{% endif %}
+    config={"lr": lr, "batch_size": batch_size, "num_epochs": num_epochs}
+)
+
+{% elif visualization_tool == "comet.ml" %}
+experiment = Experiment("{{ comet_api_key }}"{% if comet_project %}, project_name="{{ comet_project }}"{% endif %})
+{% endif %}
+
+{% if checkpoint %}
+checkpoint_dir = Path(f"checkpoints/{experiment_id}")
+checkpoint_dir.mkdir(parents=True, exist_ok=True)
+{% endif %}
+
+print_every = {{ print_every }}  # batches
+
+#------------------------------------------------------------------------
+# Set up device.
+# Parallel processing coming soon
+"""
+{% if gpu %}
+use_cuda = torch.cuda.is_available()
+{% else %}
+use_cuda = False
+{% endif %}
+device = torch.device("cuda" if use_cuda else "cpu")
+""" 
+#------------------------------------------------------------------------   
+{% if data_format == "Public dataset" %}
+
+{{ header("Dataset & Preprocessing") }}
+#------------------------------------------------------------------------
+
+
+def load_data():
+    # Download and transform dataset.
+    {% if dataset == "Fuel Efficiency"%}
+    url = 'http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data'
+    column_names = ['MPG', 'Cylinders', 'Displacement', 'Horsepower', 'Weight',
+                'Acceleration', 'Model Year', 'Origin']
+
+    raw_dataset = pd.read_csv(url, names=column_names,
+                          na_values='?', comment='\t',
+                          sep=' ', skipinitialspace=True)
+    {% endif %}
+    return raw_dataset[:,:-1], raw_dataset[:,-1]
+    ]
+
+features, labels = load_data(data)
+
+{%- else -%}
+
+{{ header("Preprocessing") }}
+#------------------------------------------------------------------------
+
+def preprocess(data):
+    if data is None:  # val/test can be empty
+        return None
+
+    {% if data_format == "Numpy arrays" %}
+    features, labels = data
+    {% endif %}
+
+    return features, labels 
+
+features, labels = preprocess(data)
+
+{% endif %}
+
+#------------------------------------------------------------------------
+
+x_train, x_test, y_train, y_test = skl_model_selection.train_test_split(features, labels, test_size=0.2)
+
+ic(x_train.shape)
+
+m_train = x_train.shape[0]
+num_states = x_train.shape[1]
+m_test = x_test.shape[0]
+label_size = y_train.shape[1]
+
+print(f"number of train data points: {m_train}")
+print(f"number of test data poitns: {m_test}")
+print(f"Each input is of size: (1, {x_train.shape[1]} )")
+print(f"Training feature vector has shape {x_train.shape}")
+print ("Each Output is of size: (1, {y_train.shape[1]} )")
+print(f"Training Label vector has shape {y_train.shape}")
+
+#------------------------------------------------------------------------
+{% if visualise_data == "on" %}
+{{header("Data Visualisation")}}
+#------------------------------------------------------------------------
+
+{% if notebook%}
+%matplotlib inline
+{% endif %}
+plt.rcParams.update({'figure.figsize':(7,5), 'figure.dpi':100})
+
+# Plot Histogram on x
+plt.hist(x_train[:,{{feature_to_visualise}}], bins={{n_bins}})
+plt.gca().set(title='Frequency Histogram', ylabel='Frequency')
+
+plt.show()
+
+plt.hist(y_train, bins=10)
+plt.gca().set(title='Frequency Histogram', ylabel='Frequency')
+{% endif %}
+
+#------------------------------------------------------------------------
+{{header("Model Architecture")}}
+#------------------------------------------------------------------------
+
+
+def SimpleNN(Inputs, Layers, Layer_Units, BatchNorm, Dropout, Regularisation=None):
+    {% if Batch_Normalisation == "on"%}
+    x1 = tf.keras.layers.BatchNormalization()(Inputs)
+    x1 = tf.keras.layers.Dense(units=Layer_Units[0],
+                                activation="{{activation_func}}"
+                                                    )(x1) 
+    {% else %}
+    x1 = tf.keras.layers.Dense(units=Layer_Units[0],
+                                activation="{{activation_func}}""
+                                                    )(Inputs)       
+    {% endif %}
+
+    x1 = tf.keras.layers.Dropout(Dropout[0])(x1)
+    if BatchNorm:
+        x1 = tf.keras.layers.BatchNormalization()(x1)
+
+    for _layer in range(1,Layers):
+        x1 = tf.keras.layers.Dense(units=Layer_Units[_layer])(x1)
+        
+        if BatchNorm:
+            x1 = tf.keras.layers.BatchNormalization()(x1)
+        x1 = tf.keras.layers.Activation(activation="{{activation_func}}")(x1)
+        x1 = tf.keras.layers.Dropout(Dropout[1])(x1)
+
+        
+
+    Output = tf.keras.layers.Dense(units=, name='output')(x1)
+    
+    Model = tf.keras.Model(inputs=Inputs, outputs=Output)
+    return Model
+
+#------------------------------------------------------------------------
+{{header("Compile and Train")}}
+#------------------------------------------------------------------------
+
+def Build_Compile_Train(Layer_Units, optimizer='SGD', lr = 0.0001, epochs = 30, 
+                        batch_size = 50, BatchNorm = True, Param_name=1, Regularisation=None, Dropout=[0.15, 0.15]):   
+
+    Model = SimpleNN(tf.keras.Input((num_states)), len(Layer_Units), 
+                    Layer_Units, BatchNorm, Dropout, Regularisation)
+    print(Model.summary())
+
+    # Specify the optimizer, and compile the model with loss functions for both outputs
+    optimizer = getattr(tf.keras.optimizers, optimizer)(learning_rate=lr)
+    Model.compile(optimizer=optimizer,
+                loss={'output':"{{loss_metric}}"},  
+                metrics={'output': "{{tracking_metric}}"})
+
+
+
+    ## Train the Model 
+    {% if visualization_tool=="Tensorboard" %}
+    logdir = os.path.join(r".\Model_Logs\", Param_name)
+    TB_callback = tf.keras.callbacks.TensorBoard(logdir, histogram_freq=2)
+    {% endif %}
+
+    {% if reduce_lr_on_plateau=="on" %}
+    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='loss', factor={{lr_reduction_factor}}, mode='min', verbose=1,
+                                                            min_delta={{lr_min_loss_delta}}, patience={{lr_patience}} , min_lr={{min_lr}})
+    {% endif %}
+
+
+    {% if early_stoppping ==  "on" %}
+    model_checkpoint_callback = tf.keras.callbacks.EarlyStopping(monitor="loss",
+                                                                    min_delta={{min_loss_delta}},
+                                                                    patience={{early_stopping_patience}},
+                                                                    verbose=2,
+                                                                    mode="min",
+                                                                    baseline=None,
+                                                                    restore_best_weights=True,
+                                                                )
+    {% endif %}
+
+    history = Model.fit(x_train, y_train,
+                        epochs=epochs, 
+                        batch_size=batch_size, 
+                        verbose=2,  # 0 = blank, 1 = update per step, 2= update per epoch
+                        {% if include_callbacks == "on"%}
+                        callbacks=[ {% if visualization_tool=="Tensorboard"%} TB_callback, {% endif %}
+                                    {% if early_stoppping == "on" %} model_checkpoint_callback, {% endif %}
+                                   {% if reduce_lr_on_plateau == "on" %} reduce_lr, {% endif %}
+                                                ], 
+                        {% endif %}
+                        validation_data=(x_test, y_test)
+                        )
+
+    return Model,history
+
+
+#------------------------------------------------------------------------
+{{header("Model Config Generator")}}
+#------------------------------------------------------------------------
+
+def config_generator(optimizer, batch_size, lr, Layer_Units, epochs):
+    config = {}
+    config['optimizer']    = optimizer
+    config['batch_size']   = batch_size
+    config['lr']           = lr
+    config['Layer_Units']  = Layer_Units
+    config['epochs']       = epochs
+    return config
+
+
+configs = {}
+{%for i in range(number_of_models|int)%}
+config[{{i}}] = config_generator(optimizer={{optimizer[i]}},
+                                batch_size={{batch_size[i]}},    
+                                lr={{lr[i]}}, 
+                                Layer_Units= {{Layer_Units[i]}},
+                                epochs={{epochs[i]}})
+{%endfor%}
+#------------------------------------------------------------------------
+
+for config in configs.values():
+        # include this to clear session after each training run
+        tf.keras.backend.clear_session()
+
+        optimizer   = config['optimizer']
+        batch_size  = config['batch_size']
+        lr          = config['lr']
+        Layer_Units = config['Layer_Units']
+        epochs      = config['epochs']
+
+        # Utility to count total amount of Parameters in model - to be included at a later date
+        #TotalParams = int(np.floor(CountParams(x_train.shape[1],Layer_Units, y_train.shape[1])/1000))
+
+        #print(optimizer, batch_size, Layer_Units)
+        
+
+
+        execution_time =  datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        Param_name = str(execution_time) + "-" + str(optimizer) + "-" + str(epochs) + "-Epochs-" + str(batch_size)
+        ModelParam_dir = os.path.join(r".\Model_Parameters\", Param_name)
+        
+
+        Model, History = Build_Compile_Train(Layer_Units=Layer_Units, 
+                                                optimizer=optimizer,
+                                                lr = lr,
+                                                epochs = epochs, 
+                                                batch_size = batch_size, 
+                                                {%if Batch_Normalisation == "on"%}
+                                                BatchNorm=True, 
+                                                {%-else%} 
+                                                BatchNorm = False {% endif %}
+                                                Regularisation=None,
+                                                Dropout = [{{dropout}}, {{dropout}}],
+                                                Param_name=Param_name)
+
+    {% if save_losses == "on"%}
+        with open(ModelParam_dir, "a") as file:
+            file.write("Layer Units = " + str(Layer_Units) + "\n")
+            file.write("Optimizer = " + str(optimizer) + "\n")
+            file.write("Epochs trained for = " + str(epochs) + "\n")
+            file.write("Batch Size = " + str(batch_size) + "\n")
+            file.write("Learning rate = " + str(lr))
+            file.write("Training error = " + str(History.history['loss'][-10:]) + "\n")
+            file.write("Test error = " + str(History.history['val_loss'][-10:]) + "\n")
+
+    {% endif %}
+
+{% if save_model ==  "on"%}
+
+    {% if threshold_type =="min"%}          
+        if History.history['loss'][-1]<{{save_threshold}}:
+
+    {% else %}
+        if History.history['loss'][-1]>{{save_threshold}}:
+
+    {% endif %}
+            Model.save('saved_models/' + str(Param_name))
+
+{% endif %}
