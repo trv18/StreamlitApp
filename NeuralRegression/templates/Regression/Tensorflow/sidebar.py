@@ -83,15 +83,16 @@ def show():
             if input["reduce_lr_on_plateau"] == "on":
 
                 input["lr_reduction_factor"] = st.number_input('lr reduction factor')
-                input["lr_min_loss_delta"] = st.number_input('lr min loss delta')
-                input["lr_patience"] = st.number_input('lr patience')
-                input["min_lr"] = st.number_input('minimum lr')
+                input["lr_min_loss_delta"] = st.number_input('lr min loss delta', min_value=0.0, step=0.0001, format="%f")
+                input["lr_patience"] = st.number_input('lr patience', min_value=0, step=1, format="%i")
+                input["min_lr"] = st.number_input('minimum lr', format="%f")
+
 
             st.write("`Early Stopping`")
             input["early_stopping"] = st.selectbox("Early Stopping if performance reaches pleateau", ["on", "off"])
             if input["early_stopping"] == "on":
-                input["min_loss_delta"] = st.number_input('min loss delta')
-                input["early_stopping_patience"] = st.number_input("Early Stopping patience")
+                input["min_loss_delta"] = st.number_input('min loss delta', format="%f")
+                input["early_stopping_patience"] = st.number_input("Early Stopping patience",value=5, format="%i")
 
         st.write("## Visualisation Tools")
         input["visualise_data"] = st.selectbox("Visualise Data", ["on", "off"])
