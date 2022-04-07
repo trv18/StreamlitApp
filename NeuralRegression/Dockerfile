@@ -12,6 +12,7 @@ RUN apt-get update &&\
 RUN pip3 install Cython &&\
     pip3 install pyarrow==0.9.0&&\ 
     pip3 install -U --force-reinstall pip
+    
 # exposing default port for streamlit
 EXPOSE 8501
 
