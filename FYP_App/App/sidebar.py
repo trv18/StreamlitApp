@@ -60,7 +60,8 @@ def show():
 
             input['lr'] = st.number_input("Enter learning rate for model training", 
                                                   min_value=1e-5, max_value=2.0, value=2e-2, step=1e-2, format='%.2e')
-
+            input["print_interval"] = st.number_input("Enter Print Interval for display of loss during training", 
+                                                  min_value=1, max_value=10000, value=100)
             input["run"] = st.form_submit_button("Fit Model")
 
         return input

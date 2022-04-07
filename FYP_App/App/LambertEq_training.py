@@ -130,7 +130,7 @@ class LambertEq():
 
 
 class LambertEq(LambertEq):
-    def Get_Lambert(self, new=True, print=True, clockwise=True, shortway=True, inputs={}):
+    def Get_Lambert(self, new=True, print=True, shortway=True, inputs={}):
         
         self.inputs = inputs
         ############################################################################
@@ -170,6 +170,11 @@ class LambertEq(LambertEq):
 
         self._r0              = np.array(States0[0])
         self._rf              = np.array(Statesf[0])
+
+        if shortway:
+            clockwise = True if np.cross(self._r0,self._rf)[2] < 0 else False
+        else:
+            clockwise = True if np.cross(self._r0,self._rf)[2] >= 0 else False
 
         ################################################################################
         ############################# Solve Lambert Problem ############################
@@ -229,7 +234,7 @@ class LambertEq(LambertEq):
         # If desired solution non existent generate new solution with identical parameters
         if self.TOF < dt_p/3600/24:
             if inputs["DateType"] == "Specified":
-                st.markdown(f'<p style="text-align:left;color:#ff000d ;font-size:15px;border-radius:0%;"> \
+                st.markdown(f'<p style="text-align:left;color:#ff000d ;font-size:20px;border-radius:0%;"> \
                         Please Enter Another Set of Dates. Time of Flight of {self.TOF} days is lower than Parabolic time of {dt_p/3600/24:.2f} days\
                          </p>', unsafe_allow_html=True)
             else:
@@ -254,12 +259,22 @@ class LambertEq(LambertEq):
             st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
                         Min E    &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp     &Delta;T: {dt_m/3600/24:.3f} days <br> \
                         Parabolic &Delta;T: {dt_p/3600/24:.3f} days <br> \
-                        Desired    &nbsp&nbsp 	&Delta;T:  {int(self.TOF):.3f} days <br> \
+                        Desired    &nbsp&nbsp&nbsp 	&Delta;T:  {int(self.TOF):.3f} days <br> \
                          </p>', unsafe_allow_html=True)
 
-            if not self.short_way:
-                st.markdown('<p style="text-align:left;color:#ff000d;font-size:20px;border-radius:0%;"> \
-                            Adjusting solution process for long way solution<p>', unsafe_allow_html=True)
+
+            if self.short_way and self.short_time:
+                st.markdown('<p style="text-align:left;color:#ffffff;font-size:20px;border-radius:0%;"> \
+                            Solving Problem Statement for <u>Short Way</u> and <u>Short time</u> <p>', unsafe_allow_html=True)
+            elif not self.short_way and self.short_time:
+                st.markdown('<p style="text-align:left;color:#ffffff;font-size:20px;border-radius:0%;"> \
+                            Solving Problem Statement for <u>Long Way</u> and <u>Short time</u> <p>', unsafe_allow_html=True)
+            elif self.short_way and not self.short_time:
+                st.markdown('<p style="text-align:left;color:#ffffff;font-size:20px;border-radius:0%;"> \
+                            Solving Problem Statement for <u>Short Way</u> and <u>Long time</u> <p>', unsafe_allow_html=True)
+            else:
+                st.markdown('<p style="text-align:left;color:#ffffff;font-size:20px;border-radius:0%;"> \
+                            Solving Problem Statement for <u>Long Way</u> and <u>Long time</u> <p>', unsafe_allow_html=True)
 
             st.markdown("#")
             # latext = r'''
@@ -329,7 +344,7 @@ class LambertEq(LambertEq):
         model = self.PINN.Build(inputs=tf.keras.Input(6), outputs=2) 
         
         # Train model
-        Loss, epochs_trained = self.PINN.train(print_interval=200, model=model)
+        Loss, epochs_trained = self.PINN.train(print_interval=self.inputs["print_interval"], model=model)
         
         return Loss, epochs_trained
 
@@ -338,7 +353,7 @@ class LambertEq(LambertEq):
 
 
 class LambertEq(LambertEq):
-    def Get_Error(self, checked_long_way=False):
+    def Get_Error(self):
 
         ############################################################################
         ############################# Get Correct SMA ##############################
@@ -381,31 +396,31 @@ class LambertEq(LambertEq):
         ############################# Output Performance ###########################
         ############################################################################
 
-        # only print out once
-        if not checked_long_way:
-             
-            st.markdown('# Results and Performance')
-            st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
-                        &alpha; = {alpha*180/pi:5f}, &beta; = {beta*180/pi:5f} <br> \
-                        &alpha; true = {alpha_true*180/pi:5f}, &beta; true = {beta_true*180/pi:5f}\
-                         </p>', unsafe_allow_html=True)
-            # st.markdown('#')
+            
+        st.markdown('# Results and Performance')
+        st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
+                    &alpha; &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp         = {alpha*180/pi:5f}, &beta; = {beta*180/pi:5f} <br> \
+                    &alpha; true = {alpha_true*180/pi:5f}, &beta; true = {beta_true*180/pi:5f}\
+                        </p>', unsafe_allow_html=True)
+        # st.markdown('#')
 
-            st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
-                        sin(&alpha;)      = {np.sin(alpha):5f}, sin(&beta;) = {np.sin(beta):5f} <br> \
-                        sin(&alpha;) true = {np.sin(alpha_true):5f}, sin(&beta;) true= {np.sin(beta_true):5f} \
-                         </p>', unsafe_allow_html=True)
+        st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
+                    sin(&alpha;) &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp     = {np.sin(alpha):5f}, sin(&beta;) = {np.sin(beta):5f} <br> \
+                    sin(&alpha;) true = {np.sin(alpha_true):5f}, sin(&beta;) true= {np.sin(beta_true):5f} \
+                        </p>', unsafe_allow_html=True)
 
-            # st.markdown('#')
-            st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
-                        SMA         = {a/1e11} <br> \
-                        SMA check   = {a2/1e11} <br> \
-                        correct SMA = {norm(avec)/1e11} \
-                         </p>', unsafe_allow_html=True)
-            # st.markdown('#')
+        # st.markdown('#')
+        st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
+                    SMA         = {a/1e11} <br> \
+                    SMA check   = {a2/1e11} <br> \
+                    correct SMA = {norm(avec)/1e11} \
+                        </p>', unsafe_allow_html=True)
+        # st.markdown('#')
 
-            st.write(f'res = {float(residual):.5E}  \n')
-            st.markdown('#')
+        st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
+                        res = {float(residual):.5E} \
+                         </p>', unsafe_allow_html=True)
+        st.markdown('#')
 
         ############################################################################
         ######################### Get Velocity prediction ##########################
@@ -428,20 +443,6 @@ class LambertEq(LambertEq):
                         V0 predicted :{np.round(v1_nn,3)} km/s <br> \
                         error = {error:.10f}%  \
                         </p>', unsafe_allow_html=True)
-
-        # if error too high check that solution does not correspond to counterclockwise solution 
-        elif checked_long_way == False:
-            st.write(f'error = {error:.10f}%')
-            st.write('Checking error for complementary solution  \n')
-
-            # Ensure no new problem is generated
-            self.Get_Lambert(new=False, print=False, clockwise=False, shortway = self.short_way, inputs=self.inputs)
-
-            # recalculate error with new solution
-            self.Get_Error(checked_long_way=True)
-
-            # do not not execute rest of loop
-            return 0
 
         # if error still too high problem has not converged
         else:

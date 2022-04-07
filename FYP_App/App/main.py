@@ -23,20 +23,15 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.image(EMOJI_URL, width=80)
 # create
 
-"""
-Final Year Project Imperial College London
-"""
-
-st.markdown("<br>", unsafe_allow_html=True)
-"""
-Using Physics Informed Neural Networks to solve Lambert's Problem
-
-1. Set Up Problem
-2. Train PINN 
-3. Plot Solution
-
----
-"""
+st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
+                        <b> Final Year Project <br>\
+                        Imperial College London </b> <br> <br> \
+                        Using Physics Informed Neural Networks to solve Lamberts Problem <br>\
+                        1. Set Up Problem <br> \
+                        2. Train PINN  <br> \
+                        3. Plot Solution  <br> \
+                        <hr> \
+                        </p>', unsafe_allow_html=True)
 #------------------------------------------------------------------------
 
 with st.sidebar:

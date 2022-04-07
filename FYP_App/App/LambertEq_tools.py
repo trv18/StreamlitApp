@@ -118,7 +118,6 @@ class Train_PINN():
         st.markdown('# Training Process')
         
         self.c = st.empty()
-        self.c2 = st.empty()
         self.model = model                
         # Choose the optimizer  
         optim = getattr(tf.keras.optimizers,self.optimizer)(learning_rate=self.lr)
@@ -143,26 +142,37 @@ class Train_PINN():
             Loss[i] = loss
 
             if loss<1e-25:
-                st.write(f'Stopped Early at It ',i, ': loss = ',loss.numpy())
-
+                
                 output = self.model(self.ModelInput)
                 sin_alpha2, sin_beta2 = output[0,0].numpy(), output[0,1].numpy()
                 alpha = 2*np.arcsin(sin_alpha2)
                 beta = 2*np.arcsin(sin_beta2)
 
-                st.write(fr'$\alpha$ = ',alpha*180/np.pi,r', $\beta$  = ',beta*180/np.pi)
+                st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
+                       Converged Early at It {i:05d}: loss = {loss:10.8e} <br> \
+                        &alpha; = {alpha*180/np.pi:.3f}, &beta;  = {beta*180/np.pi:.3f}\
+                         </p>', unsafe_allow_html=True)
+
                 st.markdown('#')
                 break
             
             # Output current loss after x iterates
             if i%print_interval == 0:
-                self.c.write(f'It {i:05d}: loss = {loss:10.8e}')
-
+                
                 output = self.model(self.ModelInput)
                 sin_alpha2, sin_beta2 = output[0,0].numpy(), output[0,1].numpy()
                 alpha = 2*np.arcsin(sin_alpha2)
                 beta = 2*np.arcsin(sin_beta2)
-                self.c2.write(fr'$\alpha$ = {alpha*180/np.pi:.3f}, $\beta$  = {beta*180/np.pi:.3f}')
+
+                        # Adjust for long way or long time 
+                if (    self.short_way and not self.short_time)  : alpha = 2*np.pi - alpha
+                if (not self.short_way and     self.short_time)  : beta  = -1*beta
+                if (not self.short_way and not self.short_time)  : alpha, beta = 2*np.pi - alpha, -1*beta
+
+                self.c.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
+                        It {i:05d}: loss = {loss:10.8e} <br> \
+                        &alpha; = {alpha*180/np.pi:.3f}, &beta;  = {beta*180/np.pi:.3f}\
+                         </p>', unsafe_allow_html=True)
 
             # Perform gradient descent step
             #st.write(grad_theta)
