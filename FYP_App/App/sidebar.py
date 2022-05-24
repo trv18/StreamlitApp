@@ -8,15 +8,13 @@ def show():
 
     with st.sidebar:
 
-    #------------------------------------------------------------------------
-
         st.write("## Problem Set up")
         input["DateType"] = st.selectbox(
-                            "Choice of date: random or Specified?", 
-                            ("Specified", "Random"),
-            )
+                                "Choice of date: random or Specified?", 
+                                ("Specified", "Random"),
+                )
         with st.form(key='my_form'):
-           
+        
             if input["DateType"]=="Specified":
 
                 input["StartEpoch"] = st.date_input(
@@ -38,7 +36,7 @@ def show():
                                 ("Short", "Long"),
             )
             
-
+    
             input["short_way"] = True if shortway=="Short" else False
 
             plot = st.selectbox(
@@ -50,19 +48,79 @@ def show():
         
             input["GetLambert"] = st.form_submit_button("Generate Lambert Problem")
 
-            # if input["DateType"]=="Random" :
-            #     st.write("Please specify starting date limits and Time of Flight Limits")
-        st.markdown('#')
 
-        with st.form(key='my_form2'):
-            input['num_epochs'] = st.number_input("Enter Number of epochs for model training", 
-                                                  min_value=1, max_value=10000, value=1001)
+    #------------------------------------------------------------------------
+        st.write("## Training Set up")
+        approach = st.selectbox(
+                                        "Solution Approach: How would you like to solve the problem?",
+                                        ("Theory of Functional Connections", "Lambert's Equation")
+            )
+        input["Model"] = 'TFC' if approach == "Theory of Functional Connections" else 'LambertEq'
+        
+            
+        if input['Model']=='TFC' :
+            Sweep = st.selectbox(
+                    "Do You Wish to perform multiple training runs to Quantify performance?",
+                    ('No','Yes'),
+                    )
+            Sweep = True if Sweep=="Yes" else False
+            if not Sweep:
+                with st.form(key='my_form2'):
+                    input['num_runs'] = 1
+                    input['Points'] = st.number_input("Enter Number of traininig points for model training", 
+                                                        min_value=1, max_value=1000, value=50, step=10)
+                                                        
+                    input['Polynomial'] = st.selectbox("Orthogonal Polynomials to be used", 
+                                                        ("LeP", "CP", "FS"))
 
-            input['lr'] = st.number_input("Enter learning rate for model training", 
-                                                  min_value=1e-5, max_value=2.0, value=2e-2, step=1e-2, format='%.2e')
-            input["print_interval"] = st.number_input("Enter Print Interval for display of loss during training", 
-                                                  min_value=1, max_value=10000, value=100)
-            input["run"] = st.form_submit_button("Fit Model")
+                    input['Order'] = st.number_input("Enter Max order of Polynomials to be used for model training", 
+                                                        min_value=1, max_value=1000, value=50, step=10)
+
+                    J2 = st.selectbox("Incorporate J2 Dynamics??",
+                                (" No", "Yes"),
+                                )
+                    input["Include_J2"] = True if J2=="Yes" else False
+
+                    input["run"] = st.form_submit_button("Fit Model")
+
+
+            else:
+
+                J2 = st.selectbox("Incorporate J2 Dynamics??",
+                                    (" No", "Yes")
+                                    )
+                input["Include_J2"] = True if J2=="Yes" else False
+
+                input['num_runs'] = st.number_input("Enter Number of models to be trained", 
+                                                            min_value=1, max_value=10, value=3)
+
+                with st.form(key='my_form2'):
+
+                    for i in range(1, input['num_runs']+1):
+                        st.write("## Training Set up #"+str(i))
+
+                        input['Points'+str(i)] = st.number_input("Enter Number of traininig points for model training", 
+                                                            min_value=1, max_value=1000, value=50, step=10, key='Points'+str(i))
+                                                            
+                        input['Polynomial'+str(i)] = st.selectbox("Orthogonal Polynomials to be used", 
+                                                            ("LeP", "CP", "FS"), key='Poly'+str(i))
+
+                        input['Order'+str(i)] = st.number_input("Enter Max order of Polynomials to be used for model training", 
+                                                            min_value=1, max_value=1000, value=50, step=10, key='Order'+str(i))
+                        
+                    input["run"] = st.form_submit_button("Fit Model")
+                
+
+        else:
+            with st.form(key='my_form2'):
+                input['num_epochs'] = st.number_input("Enter Number of epochs for model training", 
+                                                    min_value=1, max_value=10000, value=1001)
+
+                input['lr'] = st.number_input("Enter learning rate for model training", 
+                                                    min_value=1e-5, max_value=2.0, value=2e-2, step=1e-2, format='%.2e')
+
+                input["print_interval"] = st.number_input("Enter Print Interval for display of loss during training", 
+                                                    min_value=1, max_value=10000, value=100)
+                input["run"] = st.form_submit_button("Fit Model")
 
         return input
-
