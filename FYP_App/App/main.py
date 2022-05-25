@@ -97,15 +97,8 @@ if 'l' not in st.session_state:
 if inputs["run"]:
     # st.session_state['container'].empty()
     if inputs['Model']=='TFC':
-       error, runtime = Solver.TrainModel(st.session_state['l'], 
-                                        points=inputs['Points'], 
-                                        poly_order=inputs['Order'], 
-                                        poly_removed=2, 
-                                        basis_func=inputs['Polynomial'],
-                                        method='pinv', 
-                                        plot=True, 
-                                        save_orbit=False, 
-                                        inputs=inputs)
+       error, runtime = Solver.train_models(st.session_state['l'],
+                                            inputs=inputs)
 
     else:
         st.session_state['l'].TrainModel(num_epochs=inputs['num_epochs'], lr=inputs['lr'])
