@@ -68,10 +68,10 @@ template_sidebar = utils.import_from_file("sidebar", "./FYP_App/App/sidebar.py")
 
 inputs = template_sidebar.show()
 
-LambertSolver = utils.import_from_file("PIM", "./app/LambertEq/LambertEq_training.py")
+LambertSolver = utils.import_from_file("PIM", "./FYP_App/App/LambertEq/LambertEq_training.py")
 
 if inputs['Model']=='TFC':
-    Solver = utils.import_from_file("PIM", "./app/TFC/TFC_3D.py")
+    Solver = utils.import_from_file("PIM", "./FYP_App/App/TFC/TFC_3D.py")
 
 l = LambertSolver.LambertEq()
 col1, col2, col3 = st.columns([1,2,1])
