@@ -5,7 +5,6 @@ import json
 import base64
 import uuid
 import re
-import jupytext
 from bokeh.models.widgets import Div
 import math
 import importlib.util
@@ -47,12 +46,6 @@ def code_header(text):
     seperator_len_left = math.floor(seperator_len)
     seperator_len_right = math.ceil(seperator_len)
     return f"# {'-' * seperator_len_left} {text} {'-' * seperator_len_right}"
-
-
-def to_notebook(code):
-    """Converts Python code to Jupyter notebook format."""
-    notebook = jupytext.reads(code, fmt="py")
-    return jupytext.writes(notebook, fmt="ipynb")
 
 
 def open_link(url, new_tab=True):
