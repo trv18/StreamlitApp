@@ -5,7 +5,6 @@ import json
 import base64
 import uuid
 import re
-from bokeh.models.widgets import Div
 import math
 import importlib.util
 
@@ -46,18 +45,6 @@ def code_header(text):
     seperator_len_left = math.floor(seperator_len)
     seperator_len_right = math.ceil(seperator_len)
     return f"# {'-' * seperator_len_left} {text} {'-' * seperator_len_right}"
-
-
-def open_link(url, new_tab=True):
-    """Dirty hack to open a new web page with a streamlit button."""
-    # From: https://discuss.streamlit.io/t/how-to-link-a-button-to-a-webpage/1661/3
-    if new_tab:
-        js = f"window.open('{url}')"  # New tab or window
-    else:
-        js = f"window.location.href = '{url}'"  # Current tab
-    html = '<img src onerror="{}">'.format(js)
-    div = Div(text=html)
-    st.bokeh_chart(div)
 
 
 def download_button(
