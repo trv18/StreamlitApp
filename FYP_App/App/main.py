@@ -64,7 +64,7 @@ with st.sidebar:
 #------------------------------------------------------------------------
 
 # Show template-specific sidebar components (based on sidebar.py in the template dir).
-template_sidebar = utils.import_from_file("sidebar", "../App/sidebar.py")
+template_sidebar = utils.import_from_file("sidebar", "./FYP_App/App/sidebar.py")
 
 inputs = template_sidebar.show()
 
