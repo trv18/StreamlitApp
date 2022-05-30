@@ -10,6 +10,7 @@ dependencies:
   - brotli=1.0.9=h166bdaf_7
   - brotli-bin=1.0.9=h166bdaf_7
   - bzip2=1.0.8=h7f98852_4
+  - bokeh 
   - ca-certificates=2022.5.18.1=ha878542_0
   - certifi=2022.5.18.1=py38h578d9bd_0
   - cycler=0.11.0=pyhd8ed1ab_0
