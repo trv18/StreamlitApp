@@ -434,11 +434,11 @@ def train_models(l, poly_removes=[2], methods = ["pinv"], plot=False, save_orbit
                                 plt.close('all')
 
                                 with col2_a: st.markdown(f'<p style="text-align:left;color:#ed9213 ;font-size:20px;border-radius:0%;"> \
-                                                            Trained way={way}, Order={poly_order}, removed={poly_remove}, basis={basis_func}, method={method}, num points={point, i}\
+                                                            Trained way={way}, Order={poly_order}, removed={poly_remove}, basis={basis_func}, method={method}, num points={point}, {i}\
                                                             <p>', unsafe_allow_html=True)
 
 
-
+    placeholder.empty()
     total_runtime = time.time_ns()/(10 ** 9) - total_start
     with col2_a: st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
                             Traing took {total_runtime} seconds\
