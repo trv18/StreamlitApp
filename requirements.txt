@@ -117,8 +117,8 @@ pydeck==0.7.1
 pyerfa==2.0.0.1
 PyGithub==1.55
 Pygments==2.12.0
-pygmo==2.16.1
-pygmo-plugins-nonfree==0.21
+pygmo
+pygmo-plugins-nonfree
 PyJWT==2.3.0
 pykep==2.6
 Pympler==1.0.1
