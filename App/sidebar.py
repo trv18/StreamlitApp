@@ -79,7 +79,7 @@ def show():
                                                         min_value=1, max_value=1000, value=50, step=10)]
                                                         
                     input['Polynomial'] = [st.selectbox("Orthogonal Polynomials to be used", 
-                                                        ("LeP", "CP", "FS"))]
+                                                        ("LeP", "CP", "FS", "ELMTanh"))]
 
                     input['Order'] = [st.number_input("Enter Max order of Polynomials to be used for model training", 
                                                         min_value=1, max_value=1000, value=50, step=10)]
@@ -111,7 +111,7 @@ def show():
                                                         value= '[50]', key='Points'))
                                                         
                     input['Polynomial'] = st.multiselect("Orthogonal Polynomials to be used", 
-                                                        ("LeP", "CP", "FS"), key='Poly')
+                                                        ("LeP", "CP", "FS", "ELMTanh"), key='Poly')
 
                     input['Order'] = literal_eval(st.text_input("Enter Max order of Polynomials to be used for model training. Enter in form [n, n, n]", 
                                                          value= '[10,20,50]', key='Order'))
