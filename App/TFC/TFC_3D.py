@@ -198,9 +198,9 @@ def TrainModel(l, points=100, poly_order=30, poly_removed=2, basis_func='CP', me
                                     <p>', unsafe_allow_html=True)
                 seconds +=1
 
-            st.markdown(f'<p style="text-align:left;color:#ffffff;font-size:20px;border-radius:0%;"> \
-                                Training Finished \
-                                <p>', unsafe_allow_html=True)
+            # st.markdown(f'<p style="text-align:left;color:#ffffff;font-size:20px;border-radius:0%;"> \
+            #                     Training Finished \
+            #                     <p>', unsafe_allow_html=True)
                     
             thread1.join()
             xi, _, Time = que.get()
@@ -238,7 +238,7 @@ def TrainModel(l, points=100, poly_order=30, poly_removed=2, basis_func='CP', me
             vel_error_z = (v1[2] - predicted_velocity_z) / v1[2]
 
             st.markdown(f'<p style="text-align:left;color:#00cf22;font-size:20px;border-radius:0%;"> \
-                        initial velocity error = {vel_error_x}, {vel_error_y}, {vel_error_z}% \
+                        initial velocity error = {vel_error_x}, {vel_error_y}, {vel_error_z} \
                         <p>', unsafe_allow_html=True)
 
             st.markdown(f'<p style="text-align:left;color:#00cf22 ;font-size:20px;border-radius:0%;"> \
@@ -415,6 +415,7 @@ def train_models(l, poly_removes=[2], methods = ["pinv"], plot=False, save_orbit
                     for method in methods:
                         for point in inputs['Points']:
                             for i in range(inputs.get('num_runs')): 
+                                placeholder.empty()
                                 with placeholder.container(): col1, col2, col3 = st.columns([1,2,1])
                                 error, runtime = TrainModel(l=l, 
                                                             points=point, 
@@ -438,10 +439,10 @@ def train_models(l, poly_removes=[2], methods = ["pinv"], plot=False, save_orbit
                                                             <p>', unsafe_allow_html=True)
 
 
-    placeholder.empty()
+    # placeholder.empty()
     total_runtime = time.time_ns()/(10 ** 9) - total_start
     with col2_a: st.markdown(f'<p style="text-align:left;color:#ffffff ;font-size:20px;border-radius:0%;"> \
-                            Traing took {total_runtime} seconds\
+                            Traing all models took {total_runtime} seconds\
                             <p>', unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns([1,2,1])
